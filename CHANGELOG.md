@@ -1,3 +1,7 @@
+## 1.0.1
+
+- URL updated
+
 ## 1.0.0
 
 - Full refactor of the package

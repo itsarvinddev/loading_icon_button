@@ -516,9 +516,9 @@ LoadingButton(
 
 If you encounter issues during migration:
 
-1. Check the [API documentation](https://pub.dev/packages/loading_button)
-2. Look at the [example app](https://github.com/yourusername/loading_button/tree/main/example)
-3. Open an issue on [GitHub](https://github.com/yourusername/loading_button/issues)
+1. Check the [API documentation](https://pub.dev/packages/loading_icon_button)
+2. Look at the [example app](https://github.com/itsarvinddev/loading_icon_button/tree/master/example)
+3. Open an issue on [GitHub](https://github.com/itsarvinddev/loading_icon_button/issues)
 
 ## Final Notes
 

@@ -3,12 +3,12 @@
 [![pub package](https://img.shields.io/pub/v/loading_icon_button.svg)](https://pub.dev/packages/loading_icon_button)
 [![GitHub Stars](https://img.shields.io/github/stars/itsarvinddev/loading_icon_button.svg?style=social&label=Star)](https://github.com/itsarvinddev/loading_icon_button)
 [![GitHub Issues](https://img.shields.io/github/issues/itsarvinddev/loading_icon_button.svg)](https://github.com/itsarvinddev/loading_icon_button/issues)
-[![GitHub License](https://img.shields.io/github/license/itsarvinddev/loading_icon_button.svg)](https://github.com/itsarvinddev/loading_icon_button/blob/main/LICENSE)
+[![GitHub License](https://img.shields.io/github/license/itsarvinddev/loading_icon_button.svg)](https://github.com/itsarvinddev/loading_icon_button/blob/master/LICENSE)
 [![X](https://img.shields.io/badge/X-Follow-blue)](https://x.com/itsarvinddev)
 
 A comprehensive Flutter package providing customizable loading buttons with icons, text, and smooth animations. Features multiple button types including `LoadingButton`, `AutoLoadingButton`, and `ArgonButton` with Material Design compliance.
 
-<img src="https://github.com/itsarvinddev/loading_icon_button/blob/main/generated-image.png" width="300" height="600" />
+<img src="https://github.com/itsarvinddev/loading_icon_button/blob/master/generated-image.png" />
 
 ## Features
 
@@ -448,7 +448,7 @@ Please file issues and feedback on the [GitHub Issues](https://github.com/itsarv
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/itsarvinddev/loading_icon_button/blob/main/LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/itsarvinddev/loading_icon_button/blob/master/LICENSE) file for details.
 
 ## Acknowledgments
 

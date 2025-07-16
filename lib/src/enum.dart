@@ -1,7 +1,7 @@
 part of '../../loading_icon_button.dart';
 
 /// Enum representing the different states of a loading button
-enum ButtonState {
+enum ActionState {
   /// Button is in idle state and ready to be pressed
   idle,
 
@@ -19,40 +19,40 @@ enum ButtonState {
 }
 
 /// Extension methods for ButtonState
-extension ButtonStateExtension on ButtonState {
+extension ButtonStateExtension on ActionState {
   /// Check if button is in idle state
-  bool get isIdle => this == ButtonState.idle;
+  bool get isIdle => this == ActionState.idle;
 
   /// Check if button is loading
-  bool get isLoading => this == ButtonState.loading;
+  bool get isLoading => this == ActionState.loading;
 
   /// Check if button is in success state
-  bool get isSuccess => this == ButtonState.success;
+  bool get isSuccess => this == ActionState.success;
 
   /// Check if button is in error state
-  bool get isError => this == ButtonState.error;
+  bool get isError => this == ActionState.error;
 
   /// Check if button is disabled
-  bool get isDisabled => this == ButtonState.disabled;
+  bool get isDisabled => this == ActionState.disabled;
 
   /// Check if button is interactive (can be pressed)
-  bool get isInteractive => this == ButtonState.idle;
+  bool get isInteractive => this == ActionState.idle;
 }
 
 /// Enum representing different types of buttons
 enum ButtonType {
   /// Elevated button style
   elevated,
-  
+
   /// Filled button style
   filled,
-  
+
   /// Outlined button style
   outlined,
-  
+
   /// Text button style
   text,
-  
+
   /// Icon button style
   icon,
 }

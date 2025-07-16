@@ -81,7 +81,7 @@ class LoadingButton extends StatefulWidget {
   final Function(dynamic)? onError;
 
   /// Called when the button state changes
-  final Function(ButtonState)? onStateChanged;
+  final Function(ActionState)? onStateChanged;
 
   @override
   State<LoadingButton> createState() => _LoadingButtonState();
@@ -91,11 +91,11 @@ class _LoadingButtonState extends State<LoadingButton>
     with TickerProviderStateMixin {
   late final AnimationController _animationController;
   late final AnimationController _scaleController;
-  late final BehaviorSubject<ButtonState> _stateSubject;
+  late final BehaviorSubject<ActionState> _stateSubject;
 
   final LoadingButtonConfig _config = LoadingButtonConfig();
 
-  ButtonState _currentState = ButtonState.idle;
+  ActionState _currentState = ActionState.idle;
 
   @override
   void initState() {
@@ -111,7 +111,7 @@ class _LoadingButtonState extends State<LoadingButton>
       vsync: this,
     );
 
-    _stateSubject = BehaviorSubject<ButtonState>.seeded(ButtonState.idle);
+    _stateSubject = BehaviorSubject<ActionState>.seeded(ActionState.idle);
 
     // Listen to state changes
     _stateSubject.stream.listen((state) {
@@ -135,22 +135,22 @@ class _LoadingButtonState extends State<LoadingButton>
     super.dispose();
   }
 
-  void _handleStateAnimation(ButtonState state) {
+  void _handleStateAnimation(ActionState state) {
     switch (state) {
-      case ButtonState.loading:
+      case ActionState.loading:
         _animationController.repeat();
         break;
-      case ButtonState.success:
+      case ActionState.success:
         _animationController.forward();
         _scheduleReset(
             widget.successDuration ?? _config.defaultSuccessDuration);
         break;
-      case ButtonState.error:
+      case ActionState.error:
         _animationController.forward();
         _scheduleReset(widget.errorDuration ?? _config.defaultErrorDuration);
         break;
-      case ButtonState.idle:
-      case ButtonState.disabled:
+      case ActionState.idle:
+      case ActionState.disabled:
         _animationController.reset();
         break;
     }
@@ -160,14 +160,14 @@ class _LoadingButtonState extends State<LoadingButton>
     if (widget.resetAfterDuration) {
       Future.delayed(duration, () {
         if (mounted) {
-          _stateSubject.add(ButtonState.idle);
+          _stateSubject.add(ActionState.idle);
         }
       });
     }
   }
 
   Future<void> _handlePress() async {
-    if (_currentState != ButtonState.idle) return;
+    if (_currentState != ActionState.idle) return;
 
     // Haptic feedback
     if (widget.enableHapticFeedback ?? _config.enableHapticFeedback) {
@@ -181,11 +181,11 @@ class _LoadingButtonState extends State<LoadingButton>
     if (widget.onPressed == null) return;
 
     try {
-      _stateSubject.add(ButtonState.loading);
+      _stateSubject.add(ActionState.loading);
       await widget.onPressed?.call();
-      _stateSubject.add(ButtonState.success);
+      _stateSubject.add(ActionState.success);
     } catch (error) {
-      _stateSubject.add(ButtonState.error);
+      _stateSubject.add(ActionState.error);
       widget.onError?.call(error);
 
       if (_config.debugMode) {
@@ -196,23 +196,23 @@ class _LoadingButtonState extends State<LoadingButton>
 
   Widget _buildChild() {
     switch (_currentState) {
-      case ButtonState.loading:
+      case ActionState.loading:
         return widget.loadingWidget ??
             (widget.loadingText != null
                 ? Text(widget.loadingText!)
                 : _config.defaultLoadingWidget);
-      case ButtonState.success:
+      case ActionState.success:
         return widget.successWidget ??
             (widget.successText != null
                 ? Text(widget.successText!)
                 : _config.defaultSuccessWidget);
-      case ButtonState.error:
+      case ActionState.error:
         return widget.errorWidget ??
             (widget.errorText != null
                 ? Text(widget.errorText!)
                 : _config.defaultErrorWidget);
-      case ButtonState.idle:
-      case ButtonState.disabled:
+      case ActionState.idle:
+      case ActionState.disabled:
         return widget.child ?? const SizedBox.shrink();
     }
   }
@@ -220,17 +220,17 @@ class _LoadingButtonState extends State<LoadingButton>
   Color _getBackgroundColor() {
     final style = widget.style;
     switch (_currentState) {
-      case ButtonState.loading:
+      case ActionState.loading:
         return style?.loadingBackgroundColor ??
             style?.backgroundColor ??
             Theme.of(context).primaryColor;
-      case ButtonState.success:
+      case ActionState.success:
         return style?.successBackgroundColor ?? Colors.green;
-      case ButtonState.error:
+      case ActionState.error:
         return style?.errorBackgroundColor ?? Colors.red;
-      case ButtonState.disabled:
+      case ActionState.disabled:
         return style?.disabledBackgroundColor ?? Colors.grey;
-      case ButtonState.idle:
+      case ActionState.idle:
         return style?.backgroundColor ?? Theme.of(context).primaryColor;
     }
   }
@@ -238,7 +238,7 @@ class _LoadingButtonState extends State<LoadingButton>
   Color _getForegroundColor() {
     final style = widget.style;
     switch (_currentState) {
-      case ButtonState.disabled:
+      case ActionState.disabled:
         return style?.disabledForegroundColor ?? Colors.grey.shade400;
       default:
         return style?.foregroundColor ?? Colors.white;
@@ -275,7 +275,7 @@ class _LoadingButtonState extends State<LoadingButton>
     final backgroundColor = _getBackgroundColor();
     final foregroundColor = _getForegroundColor();
     final isEnabled =
-        _currentState == ButtonState.idle && widget.onPressed != null;
+        _currentState == ActionState.idle && widget.onPressed != null;
 
     switch (widget.type) {
       case ButtonType.elevated:
@@ -366,7 +366,7 @@ class _LoadingButtonState extends State<LoadingButton>
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      enabled: _currentState == ButtonState.idle && widget.onPressed != null,
+      enabled: _currentState == ActionState.idle && widget.onPressed != null,
       label: _getSemanticLabel(),
       child: _buildButton(),
     );
@@ -374,15 +374,15 @@ class _LoadingButtonState extends State<LoadingButton>
 
   String _getSemanticLabel() {
     switch (_currentState) {
-      case ButtonState.loading:
+      case ActionState.loading:
         return widget.loadingText ?? 'Loading';
-      case ButtonState.success:
+      case ActionState.success:
         return widget.successText ?? 'Success';
-      case ButtonState.error:
+      case ActionState.error:
         return widget.errorText ?? 'Error';
-      case ButtonState.disabled:
+      case ActionState.disabled:
         return 'Disabled';
-      case ButtonState.idle:
+      case ActionState.idle:
         return 'Button';
     }
   }

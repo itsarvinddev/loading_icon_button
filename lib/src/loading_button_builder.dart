@@ -20,7 +20,7 @@ class LoadingButtonBuilder {
   bool _resetAfterDuration = true;
   bool? _enableHapticFeedback;
   Function(dynamic)? _onError;
-  Function(ButtonState)? _onStateChanged;
+  Function(ActionState)? _onStateChanged;
   Key? _key;
   LoadingButtonBuilder._(this._type);
 
@@ -153,7 +153,7 @@ class LoadingButtonBuilder {
   }
 
   /// Set state change handler
-  LoadingButtonBuilder onStateChanged(Function(ButtonState) onStateChanged) {
+  LoadingButtonBuilder onStateChanged(Function(ActionState) onStateChanged) {
     _onStateChanged = onStateChanged;
     return this;
   }

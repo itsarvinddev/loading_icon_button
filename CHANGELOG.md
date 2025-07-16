@@ -1,3 +1,7 @@
+## 1.0.2
+
+- ButtonState into ActionState
+
 ## 1.0.1
 
 - URL updated

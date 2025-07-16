@@ -79,10 +79,10 @@ LoadingButton(
 
 ### 2. AutoLoadingButton (Material Design)
 
-From the `material/` folder - A Material Design compliant button with automatic loading states:
+A Material Design compliant button with automatic loading states:
 
 ```dart
-AutoLoadingButton.elevated(
+ElevatedAutoLoadingButton(
   onPressed: () async {
     // Automatically shows loading state
     await _performOperation();
@@ -97,32 +97,39 @@ AutoLoadingButton.elevated(
 )
 ```
 
-### 3. LoadingButton (Material Design)
+### 3. LoadingButton
 
-From the `material/` folder - Enhanced Material Design button with advanced features:
+Enhanced Material Design button with advanced features:
 
 ```dart
-/// Manually control the loading state
-bool _isLoading = false;
-
 LoadingButton(
-  isLoading: _isLoading,
-  onPressed: () {
-    _isLoading = true;
-    // Perform your operation
-    doNetworkRequest().then((_) {
-      _isLoading = false;
-    });
-  },
-  child: Row(
+  type: ButtonType.elevated,
+  onPressed: () => _simulateLogin(),
+  child: const Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Icon(Icons.upload),
+      Icon(Icons.login),
       SizedBox(width: 8),
-      Text('Upload File'),
+      Text('Login'),
     ],
   ),
-)
+  style: const LoadingButtonStyle(
+    backgroundColor: Colors.blue,
+    foregroundColor: Colors.white,
+    borderRadius: 8,
+  ),
+  loadingText: 'Logging in...',
+  successText: 'Welcome!',
+  errorText: 'Login failed',
+  onError: (error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Login error: $error'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  },
+),
 ```
 
 ### 4. ArgonButton
@@ -266,7 +273,6 @@ class _LoginScreenState extends State {
 
 ```dart
 class FileUploadButton extends StatelessWidget {
-  bool _isLoading = false;
 
   Future _uploadFile() async {
     _isLoading = true;
@@ -277,13 +283,11 @@ class FileUploadButton extends StatelessWidget {
     if (Random().nextBool()) {
       throw Exception('Upload failed');
     }
-    _isLoading = false;
   }
 
   @override
   Widget build(BuildContext context) {
     return LoadingButton(
-      isLoading: _isLoading,
       onPressed: _uploadFile,
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -357,7 +361,7 @@ LoadingButton(
 
 ## Migration Guide
 
-### From v0.0.6 to v0.0.7
+### From v0.0.X to v1.0.X
 
 - Update import statements
 - Replace deprecated properties with new equivalents

@@ -48,13 +48,10 @@ import 'package:loading_icon_button/loading_icon_button.dart';
 ### Basic Usage
 
 ```dart
-final LoadingButtonController _btnController = LoadingButtonController();
-
 LoadingButton(
   child: const Text('Login with Apple'),
   iconData: Icons.apple,
   onPressed: () => _handleLogin(),
-  controller: _btnController,
 )
 ```
 
@@ -71,9 +68,7 @@ LoadingButton(
   onPressed: () async {
     // Your async operation
     await Future.delayed(Duration(seconds: 2));
-    _btnController.success();
   },
-  controller: _btnController,
   duration: Duration(milliseconds: 300),
   successColor: Colors.green,
   errorColor: Colors.red,
@@ -87,18 +82,17 @@ LoadingButton(
 From the `material/` folder - A Material Design compliant button with automatic loading states:
 
 ```dart
-AutoLoadingButton(
+AutoLoadingButton.elevated(
   onPressed: () async {
     // Automatically shows loading state
     await _performOperation();
     // Automatically shows success/error state
   },
-  child: Text('Auto Loading'),
-  type: ButtonType.elevated,
-  style: LoadingButtonStyle(
-    backgroundColor: Colors.blue,
-    foregroundColor: Colors.white,
-    borderRadius: 8.0,
+  child: const Text('Auto Loading'),
+  style: ButtonStyle(
+    backgroundColor: WidgetStateProperty.all(Colors.blue),
+    foregroundColor: WidgetStateProperty.all(Colors.white),
+    borderRadius: WidgetStateProperty.all(BorderRadius.circular(8.0)),
   ),
 )
 ```
@@ -108,9 +102,18 @@ AutoLoadingButton(
 From the `material/` folder - Enhanced Material Design button with advanced features:
 
 ```dart
+/// Manually control the loading state
+bool _isLoading = false;
+
 LoadingButton(
-  type: ButtonType.filled,
-  onPressed: _handleSubmit,
+  isLoading: _isLoading,
+  onPressed: () {
+    _isLoading = true;
+    // Perform your operation
+    doNetworkRequest().then((_) {
+      _isLoading = false;
+    });
+  },
   child: Row(
     mainAxisSize: MainAxisSize.min,
     children: [
@@ -119,31 +122,6 @@ LoadingButton(
       Text('Upload File'),
     ],
   ),
-  loadingWidget: Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      SizedBox(
-        width: 16,
-        height: 16,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      ),
-      SizedBox(width: 8),
-      Text('Uploading...'),
-    ],
-  ),
-  successWidget: Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(Icons.check_circle),
-      SizedBox(width: 8),
-      Text('Uploaded!'),
-    ],
-  ),
-  onError: (error) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: $error')),
-    );
-  },
 )
 ```
 
@@ -205,35 +183,29 @@ LoadingButtonBuilder.elevated()
 
 ### LoadingButton Properties
 
-| Property             | Type                      | Default        | Description                               |
-| -------------------- | ------------------------- | -------------- | ----------------------------------------- |
-| `child`              | `Widget`                  | required       | The widget to display when button is idle |
-| `iconData`           | `IconData?`               | `null`         | Icon to display alongside text            |
-| `onPressed`          | `VoidCallback?`           | `null`         | Callback when button is pressed           |
-| `controller`         | `LoadingButtonController` | required       | Controller to manage button state         |
-| `duration`           | `Duration`                | `300ms`        | Animation duration                        |
-| `loaderSize`         | `double`                  | `20.0`         | Size of the loading indicator             |
-| `animateOnTap`       | `bool`                    | `true`         | Whether to animate on tap                 |
-| `resetAfterDuration` | `bool`                    | `true`         | Auto-reset after success/error            |
-| `errorColor`         | `Color?`                  | `Colors.red`   | Color for error state                     |
-| `successColor`       | `Color?`                  | `Colors.green` | Color for success state                   |
-| `successIcon`        | `IconData?`               | `Icons.check`  | Icon for success state                    |
-| `failedIcon`         | `IconData?`               | `Icons.error`  | Icon for error state                      |
-| `iconColor`          | `Color?`                  | `null`         | Color for icons                           |
-| `showBox`            | `bool`                    | `true`         | Whether to show button container          |
+| Property             | Type            | Default        | Description                               |
+| -------------------- | --------------- | -------------- | ----------------------------------------- |
+| `child`              | `Widget`        | required       | The widget to display when button is idle |
+| `iconData`           | `IconData?`     | `null`         | Icon to display alongside text            |
+| `onPressed`          | `VoidCallback?` | `null`         | Callback when button is pressed           |
+| `duration`           | `Duration`      | `300ms`        | Animation duration                        |
+| `loaderSize`         | `double`        | `20.0`         | Size of the loading indicator             |
+| `animateOnTap`       | `bool`          | `true`         | Whether to animate on tap                 |
+| `resetAfterDuration` | `bool`          | `true`         | Auto-reset after success/error            |
+| `errorColor`         | `Color?`        | `Colors.red`   | Color for error state                     |
+| `successColor`       | `Color?`        | `Colors.green` | Color for success state                   |
+| `successIcon`        | `IconData?`     | `Icons.check`  | Icon for success state                    |
+| `failedIcon`         | `IconData?`     | `Icons.error`  | Icon for error state                      |
+| `iconColor`          | `Color?`        | `null`         | Color for icons                           |
+| `showBox`            | `bool`          | `true`         | Whether to show button container          |
 
 ### AutoLoadingButton Properties
 
-| Property        | Type                  | Default    | Description                              |
-| --------------- | --------------------- | ---------- | ---------------------------------------- |
-| `onPressed`     | `VoidCallback?`       | `null`     | Async callback function                  |
-| `child`         | `Widget`              | required   | Button content                           |
-| `type`          | `ButtonType`          | `elevated` | Button type (elevated, filled, outlined) |
-| `style`         | `LoadingButtonStyle?` | `null`     | Button styling                           |
-| `loadingWidget` | `Widget?`             | `null`     | Custom loading widget                    |
-| `successWidget` | `Widget?`             | `null`     | Custom success widget                    |
-| `errorWidget`   | `Widget?`             | `null`     | Custom error widget                      |
-| `onError`       | `Function(dynamic)?`  | `null`     | Error handling callback                  |
+| Property    | Type            | Default  | Description             |
+| ----------- | --------------- | -------- | ----------------------- |
+| `onPressed` | `VoidCallback?` | `null`   | Async callback function |
+| `child`     | `Widget`        | required | Button content          |
+| `style`     | `ButtonStyle?`  | `null`   | Button styling          |
 
 ### ArgonButton Properties
 
@@ -258,7 +230,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State {
-  final LoadingButtonController _btnController = LoadingButtonController();
 
   void _handleLogin() async {
     try {
@@ -267,12 +238,10 @@ class _LoginScreenState extends State {
 
       // Simulate random success/failure
       if (DateTime.now().millisecondsSinceEpoch % 2 == 0) {
-        _btnController.success();
-      } else {
-        _btnController.error();
+        throw Exception('Login failed');
       }
     } catch (e) {
-      _btnController.error();
+      throw Exception('Login failed');
     }
   }
 
@@ -281,7 +250,6 @@ class _LoginScreenState extends State {
     return Scaffold(
       body: Center(
         child: LoadingButton(
-          controller: _btnController,
           onPressed: _handleLogin,
           child: Text('Login'),
           iconData: Icons.login,
@@ -298,7 +266,10 @@ class _LoginScreenState extends State {
 
 ```dart
 class FileUploadButton extends StatelessWidget {
+  bool _isLoading = false;
+
   Future _uploadFile() async {
+    _isLoading = true;
     // Simulate file upload
     await Future.delayed(Duration(seconds: 3));
 
@@ -306,12 +277,13 @@ class FileUploadButton extends StatelessWidget {
     if (Random().nextBool()) {
       throw Exception('Upload failed');
     }
+    _isLoading = false;
   }
 
   @override
   Widget build(BuildContext context) {
     return LoadingButton(
-      type: ButtonType.elevated,
+      isLoading: _isLoading,
       onPressed: _uploadFile,
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -321,31 +293,6 @@ class FileUploadButton extends StatelessWidget {
           Text('Upload File'),
         ],
       ),
-      loadingWidget: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-          SizedBox(width: 8),
-          Text('Uploading...'),
-        ],
-      ),
-      successWidget: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.check_circle),
-          SizedBox(width: 8),
-          Text('Uploaded!'),
-        ],
-      ),
-      onError: (error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload failed: $error')),
-        );
-      },
     );
   }
 }

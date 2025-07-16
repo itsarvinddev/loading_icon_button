@@ -1,309 +1,143 @@
 import 'package:flutter/material.dart';
 import 'package:loading_icon_button/loading_icon_button.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
-  final LoadingButtonController _btnController1 = LoadingButtonController();
-
-  final LoadingButtonController _btnController2 = LoadingButtonController();
-
-  final LoadingButtonController _btnController3 = LoadingButtonController();
-
-  late AnimationController animationController;
-
-  final bool show = true;
-
-  @override
-  void initState() {
-    animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    );
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      debugShowCheckedModeBanner: false,
+      title: 'Loading Icon Button Demo',
       theme: ThemeData(
-        brightness: Brightness.light,
+        primarySwatch: Colors.blue,
       ),
-      home: SafeArea(
-        child: Scaffold(
-          body: ListView(
-            children: [
-              Container(
-                margin: const EdgeInsets.all(12),
-                height: 240, //define in multiple of 8
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.black,
-                    width: 1.5,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    const Text("Text  Only"),
-                    Center(
-                      child: LoadingButton(
-                        showBox: show,
-                        child: Text(
-                          'Login with Google', // add other options
-                          style: GoogleFonts.openSans().copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        //  iconData: PhosphorIcons.googleLogo,
-                        onPressed: () {
-                          Future.delayed(const Duration(seconds: 2), () {
-                            _btnController1.success();
-                            Future.delayed(const Duration(seconds: 1), () {
-                              _btnController1.reset();
-                            });
-                          });
-                        },
-                        successIcon: PhosphorIcons.check,
-                        controller: _btnController1,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.all(12),
+      home: const MyHomePage(),
+    );
+  }
+}
 
-                height: 240, // always define in multiple of 8
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({Key? key}) : super(key: key);
 
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.black26, // for better look
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    const Text("Icon Button"),
-                    Center(
-                      child: LoadingButton(
-                        showBox: show,
-                        child: const Text('Login with Ios'),
-                        iconData: PhosphorIcons.appleLogo,
-                        onPressed: () {
-                          Future.delayed(const Duration(seconds: 2), () {
-                            _btnController3.success();
-                            Future.delayed(const Duration(seconds: 2), () {
-                              _btnController3.reset();
-                            });
-                          });
-                        },
-                        successIcon: PhosphorIcons.check,
-                        controller: _btnController3,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
 
-                margin: const EdgeInsets.all(8),
+class _MyHomePageState extends State<MyHomePage> {
+  Future<void> _handlePress() async {
+    // Simulate network request
+    await Future.delayed(const Duration(seconds: 2));
 
-                height: 240,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.black,
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center, // left or right can also be implied
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    const Text("Icon Button Only"),
-                    Center(
-                      child: LoadingButton(
-                        showBox: show,
-                        primaryColor: Colors.white,
-                        iconColor: Colors.deepPurpleAccent,
-                        valueColor: const Color(0xff0066ff),
-                        errorColor: const Color(0xffe0333c),
-                        successColor: const Color(0xff58B09C),
-                        iconData: PhosphorIcons.magnifyingGlass,
-                        onPressed: () {
-                          Future.delayed(const Duration(seconds: 1), () {
-                            _btnController2.error();
-                            Future.delayed(const Duration(seconds: 2), () {
-                              _btnController2.reset();
-                            });
-                          });
-                        },
-                        successIcon: PhosphorIcons.check,
-                        controller: _btnController2,
-                      ),
-                    ),
-                  ],
-                ),
+    // Simulate random success/failure
+    if (DateTime.now().millisecondsSinceEpoch % 2 == 0) {
+      throw Exception('Random error occurred');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Loading Icon Button Demo'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Simple usage
+            LoadingButton(
+              onPressed: _handlePress,
+              child: const Text('Simple Button'),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Builder pattern usage
+            LoadingButtonBuilder.elevated()
+                .onPressed(_handlePress)
+                .child(const Text('Builder Pattern'))
+                .loadingText('Processing...')
+                .successText('Done!')
+                .errorText('Failed!')
+                .width(200)
+                .height(50)
+                .style(const LoadingButtonStyle(
+                  backgroundColor: Colors.purple,
+                  borderRadius: 25,
+                ))
+                .build(),
+
+            const SizedBox(height: 20),
+
+            // Outlined button
+            LoadingButtonBuilder.outlined()
+                .onPressed(_handlePress)
+                .child(const Text('Outlined Button'))
+                .style(const LoadingButtonStyle(
+                  borderColor: Colors.green,
+                  borderWidth: 2,
+                ))
+                .build(),
+
+            const SizedBox(height: 20),
+
+            // With custom widgets
+            LoadingButton(
+              type: ButtonType.filled,
+              onPressed: _handlePress,
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.upload),
+                  SizedBox(width: 8),
+                  Text('Upload'),
+                ],
               ),
-              Container(
-                margin: const EdgeInsets.all(12),
-                height: 240,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.black,
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    const Text("Argon Button"),
-                    Center(
-                      child: ArgonButton(
-                        height: 50,
-                        roundLoadingShape: true,
-                        width: 200,
-                        onTap: (startLoading, stopLoading, btnState) {
-                          startLoading();
-                          Future.delayed(const Duration(seconds: 3), () {
-                            stopLoading();
-                          });
-                        },
-                        loader: const Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        ),
-                        child: const Text(
-                          "SignUp",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700),
-                        ),
-                        borderRadius: 5.0,
-                        color: const Color(0xFFfb4747),
-                      ),
+              loadingWidget: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
-                  ],
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.all(12),
-                height: 200,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.black,
-                    width: 1,
                   ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    const Text("Argon Timer Button"),
-                    Center(
-                      child: ArgonTimerButton(
-                        initialTimer: 10, // Optional
-                        height: 80,
-                        width: 200,
-                        minWidth: 130,
-                        color: const Color(0xFF7866FE),
-                        borderRadius: 5.0,
-                        child: const Text(
-                          "Resend OTP",
-                          style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700),
-                        ),
-                        loader: (timeLeft) {
-                          return Text(
-                            "Wait | $timeLeft",
-                            style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700),
-                          );
-                        },
-                        onTap: (startTimer, btnState) {
-                          if (btnState == ArgonButtonState.idle) {
-                            startTimer(3);
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+                  SizedBox(width: 8),
+                  Text('Uploading...'),
+                ],
               ),
-              Container(
-                margin: const EdgeInsets.all(12),
-                height: 200,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.black,
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    const Text("Argon Timer Button"),
-                    Center(
-                      child: ArgonButton(
-                        height: 50,
-                        roundLoadingShape: false,
-                        width: 200,
-                        minWidth: 130,
-                        onTap: (startLoading, stopLoading, btnState) {
-                          startLoading();
-                          Future.delayed(const Duration(seconds: 3), () {
-                            stopLoading();
-                          });
-                        },
-                        child: const Text(
-                          "Continue",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700),
-                        ),
-                        loader: const Text(
-                          "Loading...",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700),
-                        ),
-                        borderRadius: 5.0,
-                        color: Colors.cyan,
-                      ),
-                    ),
-                  ],
-                ),
+              successWidget: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.check_circle),
+                  SizedBox(width: 8),
+                  Text('Uploaded!'),
+                ],
               ),
-            ],
-          ),
+              errorWidget: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.error),
+                  SizedBox(width: 8),
+                  Text('Failed!'),
+                ],
+              ),
+              onError: (error) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: $error')),
+                );
+              },
+              onStateChanged: (state) {
+                print('Button state changed to: $state');
+              },
+            ),
+          ],
         ),
       ),
     );

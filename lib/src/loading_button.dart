@@ -1,469 +1,389 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:rxdart/rxdart.dart';
+part of '../../loading_icon_button.dart';
 
-import 'enum.dart';
-
-
+/// A customizable loading button with different states and animations
 class LoadingButton extends StatefulWidget {
-  /// Constructor for the LoadingButton widget.
-  LoadingButton({
-    Key? key,
-    this.height = 55,
-    this.width = 225,
+  /// Creates a LoadingButton
+  const LoadingButton({
+    super.key,
+    this.type = ButtonType.elevated,
+    this.onPressed,
     this.child,
-    this.iconData,
-    required this.onPressed,
-    required this.controller,
-    this.loaderSize = 50.0,
-    this.loaderStrokeWidth = 1.5,
-    this.animateOnTap = true,
-    this.borderRadius = 25,
-    this.elevation = 5,
-    this.duration = const Duration(milliseconds: 500),
-    this.curve = Curves.easeInOutCirc,
-    this.primaryColor,
-    this.errorColor = Colors.redAccent,
-    this.successColor = Colors.green,
-    this.shadowColor,
-    this.valueColor,
-    this.disabledColor,
-    this.iconColor,
-    this.resetDuration = const Duration(seconds: 15),
-    this.resetAfterDuration = false,
-    this.successIcon = Icons.check,
-    this.failedIcon = Icons.close,
-    this.completionCurve = Curves.elasticOut,
-    this.completionDuration = const Duration(milliseconds: 1000),
-    this.spaceBetween = 10,
-    this.showBox = true,
-  }) : super(key: key) {
-    assert(child != null || iconData != null);
-  }
+    this.loadingWidget,
+    this.successWidget,
+    this.errorWidget,
+    this.style,
+    this.animationDuration,
+    this.successDuration,
+    this.errorDuration,
+    this.width,
+    this.height,
+    this.loadingText,
+    this.successText,
+    this.errorText,
+    this.resetAfterDuration = true,
+    this.enableHapticFeedback,
+    this.onError,
+    this.onStateChanged,
+  });
 
-  /// Required button controller
-  final LoadingButtonController controller;
+  /// The type of button to create
+  final ButtonType type;
 
-  /// Callback when button is pressed
-  final VoidCallback? onPressed;
+  /// Called when the button is pressed
+  final AsyncCallback? onPressed;
 
-  /// Child widget
+  /// The widget to display when the button is in idle state
   final Widget? child;
 
-  /// Icon for button
-  final IconData? iconData;
+  /// The widget to display when the button is loading
+  final Widget? loadingWidget;
 
-  /// Icon color for button
-  final Color? iconColor;
+  /// The widget to display when the button is in success state
+  final Widget? successWidget;
 
-  /// Primary color or the button
-  final Color? primaryColor;
+  /// The widget to display when the button is in error state
+  final Widget? errorWidget;
 
-  /// Vertical extent of the button
-  final double height;
+  /// The style configuration for the button
+  final LoadingButtonStyle? style;
 
-  /// Horizontal extent of the button
-  final double width;
+  /// Duration for animations
+  final Duration? animationDuration;
 
-  /// Spacing between icon and the child widget
-  final double spaceBetween;
+  /// Duration to show success state
+  final Duration? successDuration;
 
-  /// Size of CircularProgressIndicator
-  final double loaderSize;
+  /// Duration to show error state
+  final Duration? errorDuration;
 
-  /// Stroke width of CircularProgressIndicator
-  final double loaderStrokeWidth;
+  /// Width of the button
+  final double? width;
 
-  /// Whether to trigger the animation on the tap event
-  final bool animateOnTap;
+  /// Height of the button
+  final double? height;
 
-  /// The color of the static icons
-  final Color? valueColor;
+  /// Text to display during loading
+  final String? loadingText;
 
-  /// Reset the animation after specified duration,
+  /// Text to display on success
+  final String? successText;
+
+  /// Text to display on error
+  final String? errorText;
+
+  /// Whether to reset to idle state after success/error duration
   final bool resetAfterDuration;
 
-  /// The curve of the shrink animation
-  final Curve curve;
+  /// Whether to enable haptic feedback
+  final bool? enableHapticFeedback;
 
-  /// The radius of the button border
-  final double borderRadius;
+  /// Called when an error occurs
+  final Function(dynamic)? onError;
 
-  /// The duration of the button animation
-  final Duration duration;
-
-  /// The elevation of the raised button
-  final double elevation;
-
-  /// Duration after which reset the button
-  final Duration resetDuration;
-
-  /// The color of the button when it is in the error state
-  final Color? errorColor;
-
-  /// The color of the button when it is in the success state
-  final Color? successColor;
-
-  /// The color of the button when it is disabled
-  final Color? disabledColor;
-
-  /// The color of the shadow of the button
-  final Color? shadowColor;
-
-  /// The icon for the success state
-  final IconData successIcon;
-
-  /// The icon for the failed state
-  final IconData failedIcon;
-
-  /// The curve of the completion animation
-  final Curve completionCurve;
-
-  /// The duration of the success and failed animation
-  final Duration completionDuration;
-
-  /// Show background box for the button
-  /// Default is true
-  final bool showBox;
-
-  Duration get _borderDuration {
-    return Duration(milliseconds: (duration.inMilliseconds / 2).round());
-  }
+  /// Called when the button state changes
+  final Function(ButtonState)? onStateChanged;
 
   @override
-  LoadingButtonState createState() => LoadingButtonState();
+  State<LoadingButton> createState() => _LoadingButtonState();
 }
 
-class LoadingButtonState extends State<LoadingButton>
+class _LoadingButtonState extends State<LoadingButton>
     with TickerProviderStateMixin {
-  late AnimationController _buttonController;
-  late AnimationController _borderController;
-  late AnimationController _checkButtonController;
+  late final AnimationController _animationController;
+  late final AnimationController _scaleController;
+  late final BehaviorSubject<ButtonState> _stateSubject;
 
-  late Animation _squeezeAnimation;
-  late Animation _bounceAnimation;
-  late Animation _borderAnimation;
+  final LoadingButtonConfig _config = LoadingButtonConfig();
 
-  final _state = BehaviorSubject<ButtonState>.seeded(ButtonState.idle);
+  ButtonState _currentState = ButtonState.idle;
 
   @override
   void initState() {
     super.initState();
-    _buttonController =
-        AnimationController(duration: widget.duration, vsync: this);
 
-    _checkButtonController =
-        AnimationController(duration: widget.completionDuration, vsync: this);
+    _animationController = AnimationController(
+      duration: widget.animationDuration ?? _config.defaultAnimationDuration,
+      vsync: this,
+    );
 
-    _borderController =
-        AnimationController(duration: widget._borderDuration, vsync: this);
+    _scaleController = AnimationController(
+      duration: const Duration(milliseconds: 100),
+      vsync: this,
+    );
 
-    _bounceAnimation = Tween<double>(begin: 0, end: widget.height).animate(
-        CurvedAnimation(
-            parent: _checkButtonController, curve: widget.completionCurve));
-    _bounceAnimation.addListener(() {
-      setState(() {});
-    });
+    _stateSubject = BehaviorSubject<ButtonState>.seeded(ButtonState.idle);
 
-    _squeezeAnimation = Tween<double>(begin: widget.width, end: widget.height)
-        .animate(
-            CurvedAnimation(parent: _buttonController, curve: widget.curve));
+    // Listen to state changes
+    _stateSubject.stream.listen((state) {
+      if (mounted) {
+        setState(() {
+          _currentState = state;
+        });
 
-    _squeezeAnimation.addListener(() {
-      setState(() {});
-    });
+        widget.onStateChanged?.call(state);
 
-    _squeezeAnimation.addStatusListener((state) {
-      if (state == AnimationStatus.completed && widget.animateOnTap) {
-        if (widget.onPressed != null) {
-          widget.onPressed!();
-        }
+        _handleStateAnimation(state);
       }
     });
-
-    _borderAnimation = BorderRadiusTween(
-            begin: BorderRadius.circular(widget.borderRadius),
-            end: BorderRadius.circular(widget.height))
-        .animate(_borderController);
-
-    _borderAnimation.addListener(() {
-      setState(() {});
-    });
-
-    // There is probably a better way of doing this...
-    _state.stream.listen((event) {
-      widget.controller._state.sink.add(event);
-    });
-
-    widget.controller._addListeners(_start, _stop, _success, _error, _reset);
   }
 
   @override
   void dispose() {
-    _buttonController.dispose();
-    _checkButtonController.dispose();
-    _borderController.dispose();
-    _state.close();
+    _animationController.dispose();
+    _scaleController.dispose();
+    _stateSubject.close();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    Widget check = Container(
-      alignment: FractionalOffset.center,
-      decoration: BoxDecoration(
-        color: _state.value == ButtonState.idle
-            ? theme.primaryColor
-            : Colors.transparent,
-        border: Border.all(
-          color: widget.successColor ?? theme.primaryColor,
-          width: widget.loaderStrokeWidth,
-        ),
-        borderRadius: BorderRadius.all(
-          Radius.circular(
-            _bounceAnimation.value / 2,
-          ),
-        ),
-      ),
-      width: _bounceAnimation.value,
-      height: _bounceAnimation.value,
-      child: _bounceAnimation.value > 20
-          ? Icon(
-              widget.successIcon,
-              color: widget.successColor ?? theme.primaryColor,
-            )
-          : null,
-    );
-
-    Widget cross = Container(
-      alignment: FractionalOffset.center,
-      decoration: BoxDecoration(
-        color: _state.value == ButtonState.idle
-            ? theme.primaryColor
-            : Colors.transparent,
-        border: Border.all(
-          color: widget.errorColor ?? theme.primaryColor,
-          width: widget.loaderStrokeWidth,
-        ),
-        borderRadius: BorderRadius.all(
-          Radius.circular(
-            _bounceAnimation.value / 2,
-          ),
-        ),
-      ),
-      width: _bounceAnimation.value,
-      height: _bounceAnimation.value,
-      child: _bounceAnimation.value > 20
-          ? Icon(
-              widget.failedIcon,
-              color: widget.errorColor ?? theme.primaryColor,
-            )
-          : null,
-    );
-
-    Widget loader = SizedBox(
-      width: widget.loaderSize,
-      height: widget.loaderSize,
-      child: Container(
-        decoration: BoxDecoration(
-          color: (widget.showBox) ? widget.primaryColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(
-              (widget.child != null) ? widget.borderRadius : 360),
-        ),
-        child: Stack(
-          children: [
-            SizedBox(
-              height: widget.loaderSize,
-              width: widget.loaderSize,
-              child: CircularProgressIndicator(
-                backgroundColor: widget.valueColor?.withOpacity(0.10) ??
-                    theme.colorScheme.primary.withOpacity(0.10),
-                valueColor: (widget.showBox)
-                    ? AlwaysStoppedAnimation<Color>(
-                        widget.valueColor ?? theme.colorScheme.onPrimary)
-                    : AlwaysStoppedAnimation<Color>(
-                        widget.valueColor ?? theme.primaryColor),
-                strokeWidth: widget.loaderStrokeWidth,
-              ),
-            ),
-            Center(
-              child: Icon(
-                widget.iconData,
-                color: _state.value == ButtonState.loading
-                    ? widget.valueColor
-                    : widget.iconColor,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    Widget streamChild = StreamBuilder(
-      stream: _state,
-      builder: (context, snapshot) {
-        return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: snapshot.data == ButtonState.loading
-              ? loader
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (widget.iconData != null)
-                      Icon(
-                        widget.iconData,
-                        color: widget.iconColor,
-                      ),
-                    if (widget.iconData != null && widget.child != null)
-                      SizedBox(
-                        width: widget.spaceBetween,
-                      ),
-                    widget.child ?? const SizedBox(),
-                  ],
-                ),
-        );
-      },
-    );
-
-    Widget btn = ButtonTheme(
-      shape: RoundedRectangleBorder(borderRadius: _borderAnimation.value),
-      disabledColor: widget.disabledColor,
-      padding: const EdgeInsets.all(0),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          disabledBackgroundColor: widget.disabledColor,
-          minimumSize: Size(
-              (widget.child != null) ? _squeezeAnimation.value : 55,
-              widget.height),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-                (widget.child != null) ? widget.borderRadius : 360),
-          ),
-          backgroundColor:
-              (widget.showBox) ? widget.primaryColor : Colors.transparent,
-          elevation: (widget.showBox) ? widget.elevation : 0,
-          shadowColor: (widget.showBox || kIsWeb)
-              ? widget.shadowColor
-              : Colors.transparent,
-          foregroundColor: (widget.showBox)
-              ? theme.colorScheme.onPrimary
-              : theme.primaryColor,
-          padding: const EdgeInsets.all(0),
-        ),
-        onPressed: widget.onPressed == null ? null : _btnPressed,
-        child: streamChild,
-      ),
-    );
-
-    return SizedBox(
-      height: widget.height,
-      width: widget.width,
-      child: Center(
-        child: _state.value == ButtonState.error
-            ? cross
-            : _state.value == ButtonState.success
-                ? check
-                : btn,
-      ),
-    );
+  void _handleStateAnimation(ButtonState state) {
+    switch (state) {
+      case ButtonState.loading:
+        _animationController.repeat();
+        break;
+      case ButtonState.success:
+        _animationController.forward();
+        _scheduleReset(
+            widget.successDuration ?? _config.defaultSuccessDuration);
+        break;
+      case ButtonState.error:
+        _animationController.forward();
+        _scheduleReset(widget.errorDuration ?? _config.defaultErrorDuration);
+        break;
+      case ButtonState.idle:
+      case ButtonState.disabled:
+        _animationController.reset();
+        break;
+    }
   }
 
-  _btnPressed() async {
-    if (widget.animateOnTap) {
-      _start();
-    } else {
-      if (widget.onPressed != null) {
-        widget.onPressed!();
+  void _scheduleReset(Duration duration) {
+    if (widget.resetAfterDuration) {
+      Future.delayed(duration, () {
+        if (mounted) {
+          _stateSubject.add(ButtonState.idle);
+        }
+      });
+    }
+  }
+
+  Future<void> _handlePress() async {
+    if (_currentState != ButtonState.idle) return;
+
+    // Haptic feedback
+    if (widget.enableHapticFeedback ?? _config.enableHapticFeedback) {
+      await HapticFeedback.lightImpact();
+    }
+
+    // Scale animation
+    await _scaleController.forward();
+    await _scaleController.reverse();
+
+    if (widget.onPressed == null) return;
+
+    try {
+      _stateSubject.add(ButtonState.loading);
+      await widget.onPressed?.call();
+      _stateSubject.add(ButtonState.success);
+    } catch (error) {
+      _stateSubject.add(ButtonState.error);
+      widget.onError?.call(error);
+
+      if (_config.debugMode) {
+        debugPrint('LoadingButton Error: $error');
       }
     }
   }
 
-  _start() {
-    _state.sink.add(ButtonState.loading);
-    _borderController.forward();
-    _buttonController.forward();
-    if (widget.resetAfterDuration) _reset();
+  Widget _buildChild() {
+    switch (_currentState) {
+      case ButtonState.loading:
+        return widget.loadingWidget ??
+            (widget.loadingText != null
+                ? Text(widget.loadingText!)
+                : _config.defaultLoadingWidget);
+      case ButtonState.success:
+        return widget.successWidget ??
+            (widget.successText != null
+                ? Text(widget.successText!)
+                : _config.defaultSuccessWidget);
+      case ButtonState.error:
+        return widget.errorWidget ??
+            (widget.errorText != null
+                ? Text(widget.errorText!)
+                : _config.defaultErrorWidget);
+      case ButtonState.idle:
+      case ButtonState.disabled:
+        return widget.child ?? const SizedBox.shrink();
+    }
   }
 
-  _stop() {
-    _state.sink.add(ButtonState.idle);
-    _buttonController.reverse();
-    _borderController.reverse();
+  Color _getBackgroundColor() {
+    final style = widget.style;
+    switch (_currentState) {
+      case ButtonState.loading:
+        return style?.loadingBackgroundColor ??
+            style?.backgroundColor ??
+            Theme.of(context).primaryColor;
+      case ButtonState.success:
+        return style?.successBackgroundColor ?? Colors.green;
+      case ButtonState.error:
+        return style?.errorBackgroundColor ?? Colors.red;
+      case ButtonState.disabled:
+        return style?.disabledBackgroundColor ?? Colors.grey;
+      case ButtonState.idle:
+        return style?.backgroundColor ?? Theme.of(context).primaryColor;
+    }
   }
 
-  _success() {
-    _state.sink.add(ButtonState.success);
-    _checkButtonController.forward();
+  Color _getForegroundColor() {
+    final style = widget.style;
+    switch (_currentState) {
+      case ButtonState.disabled:
+        return style?.disabledForegroundColor ?? Colors.grey.shade400;
+      default:
+        return style?.foregroundColor ?? Colors.white;
+    }
   }
 
-  _error() {
-    _state.sink.add(ButtonState.error);
-    _checkButtonController.forward();
+  Widget _buildButton() {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+
+    final buttonWidth = widget.width ??
+        (isTablet ? _config.defaultWidth * 1.2 : _config.defaultWidth);
+    final buttonHeight = widget.height ?? _config.defaultHeight;
+
+    return AnimatedBuilder(
+      animation: _scaleController,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: 1.0 - (_scaleController.value * 0.05),
+          child: AnimatedContainer(
+            duration:
+                widget.animationDuration ?? _config.defaultAnimationDuration,
+            width: buttonWidth,
+            height: buttonHeight,
+            child: child,
+          ),
+        );
+      },
+      child: _buildButtonByType(),
+    );
   }
 
-  _reset() async {
-    if (widget.resetAfterDuration) await Future.delayed(widget.resetDuration);
-    _state.sink.add(ButtonState.idle);
-    _buttonController.reverse();
-    _borderController.reverse();
-    _checkButtonController.reset();
+  Widget _buildButtonByType() {
+    final backgroundColor = _getBackgroundColor();
+    final foregroundColor = _getForegroundColor();
+    final isEnabled =
+        _currentState == ButtonState.idle && widget.onPressed != null;
+
+    switch (widget.type) {
+      case ButtonType.elevated:
+        return ElevatedButton(
+          onPressed: isEnabled ? _handlePress : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: backgroundColor,
+            foregroundColor: foregroundColor,
+            elevation: widget.style?.elevation,
+            shadowColor: widget.style?.shadowColor,
+            padding: widget.style?.padding,
+            alignment: widget.style?.alignment,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                widget.style?.borderRadius ?? _config.defaultBorderRadius,
+              ),
+            ),
+          ),
+          child: _buildChild(),
+        );
+      case ButtonType.filled:
+        return FilledButton(
+          onPressed: isEnabled ? _handlePress : null,
+          style: FilledButton.styleFrom(
+            backgroundColor: backgroundColor,
+            foregroundColor: foregroundColor,
+            padding: widget.style?.padding,
+            alignment: widget.style?.alignment,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                widget.style?.borderRadius ?? _config.defaultBorderRadius,
+              ),
+            ),
+          ),
+          child: _buildChild(),
+        );
+      case ButtonType.outlined:
+        return OutlinedButton(
+          onPressed: isEnabled ? _handlePress : null,
+          style: OutlinedButton.styleFrom(
+            backgroundColor: backgroundColor,
+            foregroundColor: foregroundColor,
+            padding: widget.style?.padding,
+            alignment: widget.style?.alignment,
+            side: BorderSide(
+              color: widget.style?.borderColor ?? foregroundColor,
+              width: widget.style?.borderWidth ?? 1.0,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                widget.style?.borderRadius ?? _config.defaultBorderRadius,
+              ),
+            ),
+          ),
+          child: _buildChild(),
+        );
+      case ButtonType.text:
+        return TextButton(
+          onPressed: isEnabled ? _handlePress : null,
+          style: TextButton.styleFrom(
+            backgroundColor: backgroundColor,
+            foregroundColor: foregroundColor,
+            padding: widget.style?.padding,
+            alignment: widget.style?.alignment,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                widget.style?.borderRadius ?? _config.defaultBorderRadius,
+              ),
+            ),
+          ),
+          child: _buildChild(),
+        );
+      case ButtonType.icon:
+        return IconButton(
+          onPressed: isEnabled ? _handlePress : null,
+          icon: _buildChild(),
+          iconSize: widget.style?.iconSize,
+          color: foregroundColor,
+          style: IconButton.styleFrom(
+            backgroundColor: backgroundColor,
+            padding: widget.style?.padding,
+          ),
+        );
+    }
   }
-}
 
-/// Options that can be chosen by the controller
-class LoadingButtonController {
-  late VoidCallback _startListener;
-  late VoidCallback _stopListener;
-  late VoidCallback _successListener;
-  late VoidCallback _errorListener;
-  late VoidCallback _resetListener;
-
-  _addListeners(
-      VoidCallback startListener,
-      VoidCallback stopListener,
-      VoidCallback successListener,
-      VoidCallback errorListener,
-      VoidCallback resetListener) {
-    _startListener = startListener;
-    _stopListener = stopListener;
-    _successListener = successListener;
-    _errorListener = errorListener;
-    _resetListener = resetListener;
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      enabled: _currentState == ButtonState.idle && widget.onPressed != null,
+      label: _getSemanticLabel(),
+      child: _buildButton(),
+    );
   }
 
-  final BehaviorSubject<ButtonState> _state =
-      BehaviorSubject<ButtonState>.seeded(ButtonState.idle);
-
-  /// A read-only stream of the button state
-  Stream<ButtonState> get stateStream => _state.stream;
-
-  /// Gets the current state
-  ButtonState? get currentState => _state.value;
-
-  /// Notify listeners to start the loading animation
-  void start() {
-    _startListener();
-  }
-
-  /// Notify listeners to start the stop animation
-  void stop() {
-    _stopListener();
-  }
-
-  /// Notify listeners to start the success animation
-  void success() {
-    _successListener();
-  }
-
-  /// Notify listeners to start the error animation
-  void error() {
-    _errorListener();
-  }
-
-  /// Notify listeners to start the reset animation
-  void reset() {
-    _resetListener();
+  String _getSemanticLabel() {
+    switch (_currentState) {
+      case ButtonState.loading:
+        return widget.loadingText ?? 'Loading';
+      case ButtonState.success:
+        return widget.successText ?? 'Success';
+      case ButtonState.error:
+        return widget.errorText ?? 'Error';
+      case ButtonState.disabled:
+        return 'Disabled';
+      case ButtonState.idle:
+        return 'Button';
+    }
   }
 }

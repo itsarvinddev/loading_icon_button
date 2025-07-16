@@ -1,6 +1,4 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'dart:ui' show lerpDouble;
+part of '../loading_icon_button.dart';
 
 /// Argon Button State Enum
 enum ArgonButtonState { busy, idle }
@@ -71,7 +69,7 @@ class ArgonButton extends StatefulWidget {
   final Color? disabledTextColor;
 
   const ArgonButton(
-      {Key? key,
+      {super.key,
       required this.height,
       required this.width,
       required this.child,
@@ -106,8 +104,7 @@ class ArgonButton extends StatefulWidget {
         assert(hoverElevation == null || hoverElevation >= 0.0),
         assert(highlightElevation == null || highlightElevation >= 0.0),
         assert(disabledElevation == null || disabledElevation >= 0.0),
-        assert(clipBehavior != null),
-        super(key: key);
+        assert(clipBehavior != null);
 
   @override
   State<ArgonButton> createState() => _ArgonButtonState();
@@ -165,7 +162,7 @@ class _ArgonButtonState extends State<ArgonButton>
     _controller.reverse();
   }
 
-  lerpWidth(a, b, t) {
+  double? lerpWidth(a, b, t) {
     if (a == 0.0 || b == 0.0) {
       return null;
     } else {
@@ -269,7 +266,7 @@ class ArgonTimerButton extends StatefulWidget {
   final int initialTimer;
 
   const ArgonTimerButton({
-    Key? key,
+    super.key,
     required this.height,
     required this.width,
     required this.child,
@@ -305,8 +302,7 @@ class ArgonTimerButton extends StatefulWidget {
         assert(hoverElevation == null || hoverElevation >= 0.0),
         assert(highlightElevation == null || highlightElevation >= 0.0),
         assert(disabledElevation == null || disabledElevation >= 0.0),
-        assert(clipBehavior != null),
-        super(key: key);
+        assert(clipBehavior != null);
 
   @override
   State<ArgonTimerButton> createState() => _ArgonTimerButtonState();
@@ -371,7 +367,7 @@ class _ArgonTimerButtonState extends State<ArgonTimerButton>
     _controller.reverse();
   }
 
-  lerpWidth(a, b, t) {
+  double? lerpWidth(a, b, t) {
     if (a == 0.0 || b == 0.0) {
       return null;
     } else {

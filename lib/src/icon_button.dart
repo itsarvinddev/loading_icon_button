@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+part of '../loading_icon_button.dart';
 
 class IconButtonLoading {
   final String? text;

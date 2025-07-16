@@ -1,3 +1,9 @@
+## 1.0.0
+
+- Full refactor of the package
+- Added new material buttons
+- Checkout the [Migration Guide](https://github.com/itsarvinddev/loading_icon_button/blob/main/MIGRATION.md) for more details
+
 ## 0.0.7
 
 - Dependencies updated

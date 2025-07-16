@@ -8,7 +8,7 @@
 
 A comprehensive Flutter package providing customizable loading buttons with icons, text, and smooth animations. Features multiple button types including `LoadingButton`, `AutoLoadingButton`, and `ArgonButton` with Material Design compliance.
 
-<img src="https://github.com/itsarvinddev/loading_icon_button/blob/master/generated-image.png" width="300" height="600" />
+<img src="https://github.com/itsarvinddev/loading_icon_button/blob/master/generated-image.png?raw=true" width="370" height="600" />
 
 ## Features
 
